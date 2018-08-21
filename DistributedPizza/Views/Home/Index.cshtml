@@ -1,0 +1,25 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+
+
+<input type="button" value="Create" id="createOneRandomOrder" />
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#createOneRandomOrder').click(function () {
+
+            $.ajax({
+                url: "home/createOneRandomOrder",
+                type: "POST",
+                cache: false,
+                async: true,
+                success: function (data) {
+                    alert("New Order Generated: " + data.OrderReferenceId);
+                }
+            });
+        });
+    });
+</script>
