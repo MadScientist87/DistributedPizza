@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace DistributedPizza.Core.Data.Entities
 {
+    [Serializable]
     public class Order
     {
         [Key]

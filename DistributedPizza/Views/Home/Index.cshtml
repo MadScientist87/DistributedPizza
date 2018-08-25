@@ -3,9 +3,11 @@
 }
 
 
-
-<input type="button" value="Create" id="createOneRandomOrder" />
-
+<div style="padding-top: 20px;">
+    <input type="button" value="Create One Order" id="createOneRandomOrder" />
+</div>
+<br />
+<input type="button" value="Clean Up DB" id="cleanUpDatabase" />
 <script type="text/javascript">
     $(document).ready(function () {
 
@@ -21,5 +23,22 @@
                 }
             });
         });
+
+        $('#cleanUpDatabase').click(function () {
+
+            $.ajax({
+                url: "home/cleanUpDatabase",
+                type: "POST",
+                cache: false,
+                async: true,
+                success: function (data) {
+                    alert("DB Clean");
+                },
+                error: function (data) {
+                    alert("Houston we have a problem....DB Clean");
+                }
+            });
+        });
+
     });
 </script>

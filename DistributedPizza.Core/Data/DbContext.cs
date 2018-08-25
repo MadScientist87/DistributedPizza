@@ -19,6 +19,7 @@ namespace DistributedPizza.Core.Data
         IDbSet<Toppings> Toppings { get; set; }
         IDbSet<PrefixSeq> PrefixSeq { get; set; }
         int SaveChanges();
+        Database Database { get; }
         void Refresh(RefreshMode refreshMode, Object entity);
     }
 

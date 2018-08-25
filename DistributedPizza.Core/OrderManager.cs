@@ -25,15 +25,14 @@ namespace DistributedPizza.Core
         public Order GenerateRandomOrder()
         {
             var customerManager = new CustomerManager(random);
-            
+
 
             var pizzaManger = new PizzaManager(this.distributedPizzaDbContext, random);
-            var customer = customerManager.GetRandomCustomer(random.Next(0,6));
+            var customer = customerManager.GetRandomCustomer(random.Next(0, 6));
             var randomPizzas = pizzaManger.GetRandomPizzas();
 
             var order = new Order
             {
-                OrderReferenceId = GetNextOrderNumber(),
                 CustomerName = customer.CustomerName,
                 CustomerPhone = customer.CustomerPhoneNumber,
                 Pizza = randomPizzas
@@ -42,11 +41,11 @@ namespace DistributedPizza.Core
             return order;
         }
 
-        private string GetNextOrderNumber()
+        public void GenerateNextOrderNumber(Order order)
         {
             DateTime today = DateTime.Now;
             PrefixSeq rec = GetNextSeq("DBP" + today.ToString("yy") + today.DayOfYear.ToString("D3"));
-            return rec.Prefix + rec.Seq.ToString("00");
+            order.OrderReferenceId = rec.Prefix + rec.Seq.ToString("00");
         }
 
 
