@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedPizza.Web", "DistributedPizza\DistributedPizza.Web.csproj", "{73BF3FCF-A3F5-40FF-BAE9-D5942F65766A}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedPizza.Core", "DistributedPizza.Core\DistributedPizza.Core.csproj", "{9DCFDF30-8A5F-49B6-947A-09C57FAF96FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedPizza.Web.Api", "DistributedPizza.Web.Api\DistributedPizza.Web.Api.csproj", "{00036936-9A75-4337-A463-3E4CCE6DC735}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedPizza.Worker", "DistributedPizza.Worker\DistributedPizza.Worker.csproj", "{DB4A0A5E-24DA-4C9A-B3DE-4B17E0295ABD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,8 +35,15 @@ Global
 		{00036936-9A75-4337-A463-3E4CCE6DC735}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00036936-9A75-4337-A463-3E4CCE6DC735}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00036936-9A75-4337-A463-3E4CCE6DC735}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB4A0A5E-24DA-4C9A-B3DE-4B17E0295ABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB4A0A5E-24DA-4C9A-B3DE-4B17E0295ABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB4A0A5E-24DA-4C9A-B3DE-4B17E0295ABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB4A0A5E-24DA-4C9A-B3DE-4B17E0295ABD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4C2E4917-FF5F-456E-BAA8-C07B0B7FD9EC}
 	EndGlobalSection
 EndGlobal
