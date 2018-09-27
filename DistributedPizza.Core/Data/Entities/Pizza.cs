@@ -15,6 +15,7 @@ namespace DistributedPizza.Core.Data.Entities
         public int Id { get; set; }
         public SauceType SauceType { get; set; }
         public Size Size { get; set; }
+        public PizzaStatus Status { get; set; }
         public virtual ICollection<Toppings> Toppings { get; set; }
     }
 

@@ -1,10 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
+using DistributedPizza.Core;
+using DistributedPizza.Core.Data;
+using DistributedPizza.Core.Data.Entities;
 using DistributedPizza.Core.Grains;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Ninject;
 using Orleans;
 using Orleans.Configuration;
 using Orleans.Runtime;
+using Ninject;
 
 namespace DistributedPizza.Tests.OrleansTests
 {
@@ -66,9 +73,15 @@ namespace DistributedPizza.Tests.OrleansTests
 
         private static async Task DoClientWork(IClusterClient client)
         {
+
+
+            var pizzas = new List<Pizza>();
+            pizzas.Add(new Pizza { Id = 1, Status = PizzaStatus.Bake });
+            pizzas.Add(new Pizza { Id = 2, Status = PizzaStatus.Bake });
+            var order = new Order {CustomerName = "test", Pizza = pizzas };
             // example of calling grains from the initialized client
-            var friend = client.GetGrain<IHello>(0);
-            var response = await friend.SayHello("Good morning, my friend!");
+            var friend = client.GetGrain<IOrderGrain>(0);
+            var response = await friend.SetupOrder(order);
             Console.WriteLine("\n\n{0}\n\n", response);
         }
     }

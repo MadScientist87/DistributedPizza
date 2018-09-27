@@ -17,6 +17,28 @@ namespace DistributedPizza.Core.Data.Entities
         public string OrderReferenceId { get; set; }
         public string CustomerName { get; set; }
         public string CustomerPhone { get; set; }
+        public Status Status { get; set; }
         public virtual ICollection<Pizza> Pizza { get; set; }
+    }
+
+    public enum Status
+    {
+        Started,
+        ReadyForDelivery,
+        Delivering,
+        Delivered
+    }
+
+    public enum PizzaStatus
+    {
+        Prep,
+        Bake,
+        PackagedForDelivery
+    }
+
+    public enum Trigger
+    {
+        UpdateOrder,
+        UpdatePizza
     }
 }

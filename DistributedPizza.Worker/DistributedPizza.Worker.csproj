@@ -3,9 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Orleans.Client" Version="2.0.3" />
     <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="2.0.0" />
@@ -16,11 +18,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Orleans.OrleansSQLUtils" Version="2.0.0" />
     <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="2.0.0" />
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="2.0.0" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="2.0.4" />
     <PackageReference Include="Microsoft.Orleans.Streaming.SQS" Version="2.0.0" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.2.1" />
+    <PackageReference Include="Stateless" Version="4.2.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
