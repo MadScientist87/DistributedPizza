@@ -19,11 +19,11 @@ namespace DistributedPizza.Core.StateMachines
         private void Initialize()
         {
             Configure(Status.Started).PermitIf(Trigger.UpdateOrder,
-                Status.ReadyForDelivery, () => true);
+                Status.ReadyForDelivery, () => _order.Pizza.Any(a => a.Status == PizzaStatus.PackagedForDelivery));
             Configure(Status.ReadyForDelivery).PermitIf(Trigger.UpdateOrder,
                 Status.Delivering, () => _order.Pizza.All(a => a.Status == PizzaStatus.PackagedForDelivery));
             Configure(Status.Delivering).PermitIf(Trigger.UpdateOrder,
-                Status.Delivered, () => true);
+                Status.Delivered, () => true);  
         }
     }
 }

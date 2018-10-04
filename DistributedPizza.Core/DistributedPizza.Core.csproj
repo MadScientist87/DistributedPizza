@@ -317,6 +317,7 @@
     <Compile Include="Queues\IStreamProcessingQueue.cs" />
     <Compile Include="Queues\KafkaStreamProcessing.cs" />
     <Compile Include="StateMachines\OrderStateMachine.cs" />
+    <Compile Include="StateMachines\PizzaStateMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

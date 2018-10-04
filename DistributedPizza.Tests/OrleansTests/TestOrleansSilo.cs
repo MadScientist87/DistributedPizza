@@ -76,11 +76,13 @@ namespace DistributedPizza.Tests.OrleansTests
 
 
             var pizzas = new List<Pizza>();
-            pizzas.Add(new Pizza { Id = 1, Status = PizzaStatus.Bake });
-            pizzas.Add(new Pizza { Id = 2, Status = PizzaStatus.Bake });
+            pizzas.Add(new Pizza { Id = 1, Status = PizzaStatus.Prep });
+            pizzas.Add(new Pizza { Id = 2, Status = PizzaStatus.Prep });
             var order = new Order {CustomerName = "test", Pizza = pizzas };
+            order.Id = 0;
+            order.Status = Status.Started;
             // example of calling grains from the initialized client
-            var friend = client.GetGrain<IOrderGrain>(0);
+            var friend = client.GetGrain<IOrderGrain>(order.Id);
             var response = await friend.SetupOrder(order);
             Console.WriteLine("\n\n{0}\n\n", response);
         }

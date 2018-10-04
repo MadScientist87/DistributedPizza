@@ -7,52 +7,61 @@ using DistributedPizza.Core.Data.Entities;
 using DistributedPizza.Core.StateMachines;
 using DistributedPizza.Tests;
 using Microsoft.Extensions.Logging;
+using Orleans;
 using Orleans.Providers;
 
 namespace DistributedPizza.Core.Grains
 {
 
+    public class OrderGrainState
+    {
+        public Order Order { get; set; }
+    }
     public interface IOrderGrain : Orleans.IGrainWithIntegerKey
     {
         Task<bool> SetupOrder(Order order);
         Task<bool> ReceiveMessage(string message);
+        Task<bool> UpdateOrder(Pizza pizza);
     }
 
     [StorageProvider(ProviderName = "OrleansStorage")]
-    public class OrderGrain : Orleans.Grain, IOrderGrain
+    public class OrderGrain : Orleans.Grain<OrderGrainState>, IOrderGrain
     {
-
         private readonly ILogger _logger;
-        private List<IPizzaGrain> _pizzas = new List<IPizzaGrain>();
         private Order _order;
+
         public OrderGrain(ILogger<OrderGrain> logger)
         {
             this._logger = logger;
         }
 
-        private void CreatePizzaGrains()
+        public override async Task OnActivateAsync()
         {
+            // We created the utility at activation time.
+            await base.OnActivateAsync();
+            await base.ReadStateAsync();
 
-            foreach (var pizza in _order.Pizza)
-            {
-                var grain = GrainFactory.GetGrain<IPizzaGrain>(0);
-                _pizzas.Add(grain);
-            }
+            if (State.Order != null)
+                await ((IOrderGrain)this).SetupOrder(State.Order);
         }
 
         async Task<bool> IOrderGrain.SetupOrder(Order order)
         {
             _order = order;
-            var orderStateMachine = new OrderStateMachine(order);
-            orderStateMachine.Fire(Trigger.UpdateOrder);
-            _logger.LogInformation($"{order.CustomerName}");
-            var grain = GrainFactory.GetGrain<IPizzaGrain>(0);
-            CreatePizzaGrains();
-            foreach (var pgrain in _pizzas)
+
+            _logger.LogInformation($"Entering order");
+
+            foreach (var pizza in _order.Pizza)
             {
-                await pgrain.Subscribe(this);
-                await pgrain.Test(this, order.Pizza.FirstOrDefault());
+                var grain = GrainFactory.GetGrain<IPizzaGrain>(pizza.Id);
+                // await grain.Subscribe(this);
+                await grain.SetupPizza(order.Id, pizza);
             }
+
+            //Write grain to persistent storage
+            base.State.Order = order;
+            // base.State.PizzasGrains = _pizzaGrains;
+            await WriteStateAsync();
 
             return true;
         }
@@ -60,6 +69,36 @@ namespace DistributedPizza.Core.Grains
         public Task<bool> ReceiveMessage(string message)
         {
             _logger.LogInformation($"{message} I got your pizza");
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> UpdateOrder(Pizza pizza)
+        {
+            var old = _order.Pizza.SingleOrDefault(x => x.Id == pizza.Id);
+            if (old != null) old.Status = pizza.Status;
+            if (old != null) _logger.LogInformation($"Order has been updated new status {old.Status}");
+            var orderStateMachine = new OrderStateMachine(_order);
+            if (orderStateMachine.CanFire(Trigger.UpdateOrder))
+                orderStateMachine.Fire(Trigger.UpdateOrder);
+            if (_order.Status == Status.Delivering)
+            {
+                if (orderStateMachine.CanFire(Trigger.UpdateOrder))
+                    orderStateMachine.Fire(Trigger.UpdateOrder);
+                if (_order.Status == Status.Delivered)
+                {
+                    try
+                    {
+                        base.ClearStateAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError($"Exception clearing the grain storage: {e}");
+
+                    }
+                }
+            }
+
+            _logger.LogInformation($"Order status {_order.Status}");
             return Task.FromResult(true);
         }
     }
