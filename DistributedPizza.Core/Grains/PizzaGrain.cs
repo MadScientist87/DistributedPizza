@@ -57,7 +57,7 @@ namespace DistributedPizza.Core.Grains
             {
                 Thread.Sleep(TimeSpan.FromSeconds(5));
                 pizzaStateMachine.Fire(Trigger.UpdatePizza);
-                
+
                 await grain.UpdateOrder(pizza);
             }
             await grain.UpdateOrder(pizza);

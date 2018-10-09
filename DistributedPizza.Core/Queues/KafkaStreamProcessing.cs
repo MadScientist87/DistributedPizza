@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using DistributedPizza.Core.Data.Entities;
@@ -27,7 +28,7 @@ namespace DistributedPizza.Core.Queues
             client.SendMessageAsync(topic, new List<Message> { msg }).Wait();
         }
 
-        public List<Order> RetrieveOrders(int? messagesToRetreive = null)
+        public List<Order> RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
         {
             var count = 0;
             var orders = new List<Order>();

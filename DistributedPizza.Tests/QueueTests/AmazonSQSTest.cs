@@ -1,12 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using DistributedPizza.Core.Data.Entities;
+using DistributedPizza.Core.Queues;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DistributedPizza.Tests.QueueTests
 {
-    class AmazonSQSTest
+    [TestClass]
+    public class AmazonSQSTest
     {
+        [TestMethod]
+        public void TestMethod1()
+        {
+            IStreamProcessingQueue queue = new AmazonSQSProcessingQueue();
+            queue.QueueOrder(new Order { CustomerName = "Lisa", OrderReferenceId = "DP" });
+            var orders = queue.RetrieveOrders(1);
+            Assert.AreEqual(orders.First().CustomerName, "Lisa");
+        }
     }
 }

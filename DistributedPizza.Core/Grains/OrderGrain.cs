@@ -8,6 +8,7 @@ using DistributedPizza.Core.StateMachines;
 using DistributedPizza.Tests;
 using Microsoft.Extensions.Logging;
 using Orleans;
+using Orleans.Concurrency;
 using Orleans.Providers;
 
 namespace DistributedPizza.Core.Grains
@@ -25,6 +26,7 @@ namespace DistributedPizza.Core.Grains
     }
 
     [StorageProvider(ProviderName = "OrleansStorage")]
+    [Reentrant]
     public class OrderGrain : Orleans.Grain<OrderGrainState>, IOrderGrain
     {
         private readonly ILogger _logger;
@@ -39,10 +41,12 @@ namespace DistributedPizza.Core.Grains
         {
             // We created the utility at activation time.
             await base.OnActivateAsync();
-            await base.ReadStateAsync();
+           // await base.ReadStateAsync();
 
             if (State.Order != null)
                 await ((IOrderGrain)this).SetupOrder(State.Order);
+
+            _logger.LogInformation($"Order Activated");
         }
 
         async Task<bool> IOrderGrain.SetupOrder(Order order)
@@ -61,7 +65,7 @@ namespace DistributedPizza.Core.Grains
             //Write grain to persistent storage
             base.State.Order = order;
             // base.State.PizzasGrains = _pizzaGrains;
-            await WriteStateAsync();
+           // await WriteStateAsync();
 
             return true;
         }
@@ -86,15 +90,17 @@ namespace DistributedPizza.Core.Grains
                     orderStateMachine.Fire(Trigger.UpdateOrder);
                 if (_order.Status == Status.Delivered)
                 {
-                    try
-                    {
-                        base.ClearStateAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError($"Exception clearing the grain storage: {e}");
 
-                    }
+                    _logger.LogInformation($"Order Was delivered");
+                    //try
+                    //{
+                    //    base.ClearStateAsync();
+                    //}
+                    //catch (Exception e)
+                    //{
+                    //    _logger.LogError($"Exception clearing the grain storage: {e}");
+
+                    //}
                 }
             }
 
