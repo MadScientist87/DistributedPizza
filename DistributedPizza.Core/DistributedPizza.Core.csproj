@@ -118,6 +118,9 @@
     <Reference Include="Orleans.Core.Abstractions, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Orleans.Core.Abstractions.2.0.0\lib\netstandard2.0\Orleans.Core.Abstractions.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp.NetCore">
+      <HintPath>C:\Users\jbrath200\.nuget\packages\restsharp.netcore\105.2.3\lib\netstandard1.6\RestSharp.NetCore.dll</HintPath>
+    </Reference>
     <Reference Include="Stateless, Version=4.0.0.0, Culture=neutral, PublicKeyToken=93038f0927583c9a, processorArchitecture=MSIL">
       <HintPath>..\packages\Stateless.4.2.1\lib\net45\Stateless.dll</HintPath>
     </Reference>
@@ -259,7 +262,6 @@
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -314,15 +316,25 @@
     <Compile Include="Migrations\201808212019151_PizzaToppings.Designer.cs">
       <DependentUpon>201808212019151_PizzaToppings.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201810141817294_updateschema.cs" />
+    <Compile Include="Migrations\201810141817294_updateschema.Designer.cs">
+      <DependentUpon>201810141817294_updateschema.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201810141923254_addCreatedDate.cs" />
+    <Compile Include="Migrations\201810141923254_addCreatedDate.Designer.cs">
+      <DependentUpon>201810141923254_addCreatedDate.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="NinjectBindings.cs" />
     <Compile Include="Objects.cs" />
+    <Compile Include="OrderAPI.cs" />
     <Compile Include="OrderManager.cs" />
     <Compile Include="PizzaManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queues\AmazonSQSProcessingQueue.cs" />
     <Compile Include="Queues\IStreamProcessingQueue.cs" />
     <Compile Include="Queues\KafkaStreamProcessing.cs" />
+    <Compile Include="SiloManager.cs" />
     <Compile Include="StateMachines\OrderStateMachine.cs" />
     <Compile Include="StateMachines\PizzaStateMachine.cs" />
   </ItemGroup>
@@ -336,6 +348,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201808212019151_PizzaToppings.resx">
       <DependentUpon>201808212019151_PizzaToppings.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810141817294_updateschema.resx">
+      <DependentUpon>201810141817294_updateschema.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810141923254_addCreatedDate.resx">
+      <DependentUpon>201810141923254_addCreatedDate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

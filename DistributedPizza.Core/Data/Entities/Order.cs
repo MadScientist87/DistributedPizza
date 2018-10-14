@@ -19,6 +19,7 @@ namespace DistributedPizza.Core.Data.Entities
         public string CustomerPhone { get; set; }
         public Status Status { get; set; }
         public virtual ICollection<Pizza> Pizza { get; set; }
+        public DateTime CreateDate { get; set; }
     }
 
     public enum Status

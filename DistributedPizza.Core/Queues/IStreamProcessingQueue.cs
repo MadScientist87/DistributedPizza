@@ -10,7 +10,7 @@ namespace DistributedPizza.Core.Queues
 {
     public interface IStreamProcessingQueue
     {
-        void QueueOrder(Order order);
-        List<Order> RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null);
+        Task QueueOrder(Order order);
+        void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null);
     }
 }

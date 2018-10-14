@@ -10,6 +10,7 @@ using DistributedPizza.Core;
 using DistributedPizza.Core.Data;
 using DistributedPizza.Core.Data.Entities;
 using DistributedPizza.Core.Data.Models;
+using DistributedPizza.Core.Queues;
 using Newtonsoft.Json;
 
 namespace DistributedPizza.Web.Api.Controllers
@@ -28,15 +29,41 @@ namespace DistributedPizza.Web.Api.Controllers
 
         [HttpPost]
         [Route("create")]
-        public IHttpActionResult Post(OrderDTO orderDTO)
+        public async Task<IHttpActionResult> Post(OrderDTO orderDTO)
         {
             Order order = _mapper.Map<OrderDTO, Order>(orderDTO);
+            order.CreateDate = DateTime.Now;
             BetterRandom random = new BetterRandom();
             var orderManager = new OrderManager(_distributedPizzaDbContext, random);
             orderManager.GenerateNextOrderNumber(order);
             _distributedPizzaDbContext.Orders.Add(order);
             _distributedPizzaDbContext.SaveChanges();
+
+            IStreamProcessingQueue queue = new KafkaStreamProcessing();
+            await queue.QueueOrder(order);
             return Ok(new OrderResponseDTO { OrderReferenceId = order.OrderReferenceId });
+        }
+
+        [HttpPost]
+        [Route("update")]
+        public IHttpActionResult Update(OrderDTO orderDTO)
+        {
+           var order= _distributedPizzaDbContext.Orders.SingleOrDefault(a=>a.Id == orderDTO.Id);
+
+            if (order != null)
+            {
+                order.Status = orderDTO.Status;
+
+                foreach (var pizzaDTO in orderDTO.Pizza)
+                {
+                    var pizza=order.Pizza.SingleOrDefault(a => a.Id == pizzaDTO.Id);
+                    if (pizza != null) pizza.Status = pizzaDTO.PizzaStatus;
+                }
+            }
+
+            _distributedPizzaDbContext.SaveChanges();
+
+            return Ok();
         }
     }
 

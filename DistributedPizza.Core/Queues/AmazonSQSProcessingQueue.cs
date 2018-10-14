@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Script.Serialization;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using DistributedPizza.Core.Data.Entities;
+using Newtonsoft.Json;
 
 namespace DistributedPizza.Core.Queues
 {
@@ -15,14 +15,14 @@ namespace DistributedPizza.Core.Queues
     {
         private const string MyQueueUrl = "https://sqs.us-east-1.amazonaws.com/047637105360/PizzaOrderQueue";
 
-        public void QueueOrder(Order order)
+        public async Task QueueOrder(Order order)
         {
             AmazonSQSConfig amazonSQSConfig = new AmazonSQSConfig();
 
             var amazonSQSClient = new AmazonSQSClient(amazonSQSConfig);
             CreateQueueRequest createQueueRequest =
                 new CreateQueueRequest();
-            var orderJson = new JavaScriptSerializer().Serialize(order);
+            var orderJson = JsonConvert.SerializeObject(order);
             string payload = orderJson;
 
             createQueueRequest.QueueName = "PizzaOrderQueue";
@@ -33,10 +33,10 @@ namespace DistributedPizza.Core.Queues
             };
 
             SendMessageResponse sendMessageResponse =
-                amazonSQSClient.SendMessage(sendMessageRequest);
+               await  amazonSQSClient.SendMessageAsync(sendMessageRequest);
         }
 
-        public List<Order> RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
+        public void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
         {
             var orders = new List<Order>();
 
@@ -59,26 +59,23 @@ namespace DistributedPizza.Core.Queues
                 {
                     for (int i = 0; i < result.Messages.Count; i++)
                     {
-                        var order = new JavaScriptSerializer().Deserialize<Order>(result.Messages[i].Body);
+                        var order = JsonConvert.DeserializeObject<Order>(result.Messages[i].Body);
                         orders.Add(order);
-
+                        Task.Run(async () => { await SiloManager.StartOrder(order); });
                         count++;
                         amazonSQSClient.DeleteMessage(MyQueueUrl, result.Messages[i].ReceiptHandle);
 
-                        if (messagesToRetreive != null && count >= messagesToRetreive)
-                        {
+                        //if (messagesToRetreive != null && count >= messagesToRetreive)
+                        //{
 
-                            break;
-                        }
+                        //    break;
+                        //}
                     }
                 }
                 Thread.Sleep(1000);
             }
 
-            return orders;
+            //  return orders;
         }
-
-
-       
     }
 }

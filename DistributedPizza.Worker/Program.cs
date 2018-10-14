@@ -11,6 +11,10 @@ using DistributedPizza.Core.Grains;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Configuration;
+using System.Threading;
+using AutoMapper;
+using DistributedPizza.Core;
+using DistributedPizza.Core.Queues;
 
 namespace DistributedPizza.Worker
 {
@@ -25,12 +29,24 @@ namespace DistributedPizza.Worker
         {
             try
             {
+                var token = new CancellationTokenSource();
                 var host = await StartSilo();
                 Console.WriteLine("Press Enter to terminate...");
+                
+                IStreamProcessingQueue kafkaQueue = new KafkaStreamProcessing();
+                //IStreamProcessingQueue amazonQueue = new AmazonSQSProcessingQueue();
+                  Task.Run( () =>
+                 {
+                     kafkaQueue.RetrieveOrders(null, token.Token);
+                     // amazonQueue.RetrieveOrders(null, token.Token);
+
+                 }, token.Token);
                 Console.ReadLine();
+                Console.WriteLine("Shutting Down...");
 
+                token.Dispose();
                 await host.StopAsync();
-
+                Console.WriteLine("Shut Down");
                 return 0;
             }
             catch (Exception ex)
@@ -43,7 +59,7 @@ namespace DistributedPizza.Worker
 
         private static async Task<ISiloHost> StartSilo()
         {
-            
+
 
             // define the cluster configuration
             var builder = new SiloHostBuilder()
@@ -76,8 +92,14 @@ namespace DistributedPizza.Worker
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
 
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
+                MapperConfigurationHelper.Build(cfg);
+            });
+            var mapper= new Mapper(mapperConfig);
             NLog.LogManager.LoadConfiguration("nlog.config");
             services.TryAddSingleton<ILoggerFactory>(loggerFactory);
+            services.TryAddSingleton<IMapper>(mapper);
         }
     }
 }

@@ -14,6 +14,8 @@ namespace DistributedPizza.Core.Data.Models
         public string CustomerName { get; set; }
         public string CustomerPhone { get; set; }
         public PizzaDTO[] Pizza { get; set; }
+        public Status Status { get; set; }
+        public DateTime CreateDate { get; set; }
     }
 
     public class PizzaDTO
@@ -22,7 +24,9 @@ namespace DistributedPizza.Core.Data.Models
         public SauceType SauceType { get; set; }
         public Size Size { get; set; }
         public ToppingDTO[] Toppings { get; set; }
-    }
+
+        public PizzaStatus PizzaStatus { get; set; }
+}
 
     public class ToppingDTO
     {

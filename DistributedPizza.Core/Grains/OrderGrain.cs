@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using DistributedPizza.Core.Data.Entities;
+using DistributedPizza.Core.Data.Models;
 using DistributedPizza.Core.StateMachines;
 using DistributedPizza.Tests;
 using Microsoft.Extensions.Logging;
@@ -30,11 +32,13 @@ namespace DistributedPizza.Core.Grains
     public class OrderGrain : Orleans.Grain<OrderGrainState>, IOrderGrain
     {
         private readonly ILogger _logger;
+        private readonly IMapper _mapper;
         private Order _order;
 
-        public OrderGrain(ILogger<OrderGrain> logger)
+        public OrderGrain(ILogger<OrderGrain> logger, IMapper mapper)
         {
             this._logger = logger;
+            _mapper = mapper;
         }
 
         public override async Task OnActivateAsync()
@@ -83,14 +87,22 @@ namespace DistributedPizza.Core.Grains
             if (old != null) _logger.LogInformation($"Order has been updated new status {old.Status}");
             var orderStateMachine = new OrderStateMachine(_order);
             if (orderStateMachine.CanFire(Trigger.UpdateOrder))
+            {
                 orderStateMachine.Fire(Trigger.UpdateOrder);
+                UpdateOrderForAPI(_order);
+            }
+
             if (_order.Status == Status.Delivering)
             {
                 if (orderStateMachine.CanFire(Trigger.UpdateOrder))
+                {
                     orderStateMachine.Fire(Trigger.UpdateOrder);
+                    UpdateOrderForAPI(_order);
+                }
+
                 if (_order.Status == Status.Delivered)
                 {
-
+                    UpdateOrderForAPI(_order);
                     _logger.LogInformation($"Order Was delivered");
                     //try
                     //{
@@ -106,6 +118,21 @@ namespace DistributedPizza.Core.Grains
 
             _logger.LogInformation($"Order status {_order.Status}");
             return Task.FromResult(true);
+        }
+
+        private void UpdateOrderForAPI(Order order)
+        {
+            OrderDTO orderDTO = _mapper.Map<Order, OrderDTO>(order);
+
+            OrderAPI.UpdateOrder(orderDTO);
+        }
+    }
+
+    public class DomainProfile : Profile
+    {
+        public DomainProfile()
+        {
+            CreateMap<OrderDTO, Order>().ReverseMap();
         }
     }
 }

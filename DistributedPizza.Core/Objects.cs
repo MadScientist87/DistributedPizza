@@ -18,7 +18,8 @@ namespace DistributedPizza.Core
         public static void Build(IMapperConfigurationExpression config)
         {
             config.CreateMap<Order, OrderDTO>().ReverseMap();
-            //config.CreateMap<OrderDTO, Order>();
+            config.CreateMap<PizzaDTO, Pizza>().ReverseMap().ForMember(d => d.PizzaStatus, o => o.MapFrom(s => s.Status));
+            config.CreateMap<ToppingDTO, Toppings>().ReverseMap();
         }
     }
 }
