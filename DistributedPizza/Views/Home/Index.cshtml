@@ -2,12 +2,39 @@
     ViewBag.Title = "Home Page";
 }
 
+<style>
+    #leftHalf {
+        background: url('@Url.Content("~/Content/Images/Pizza.jpg")');
+        width: 48%;
+                position: absolute;
+                left: 0px;
+                height: 100%;
+            }
 
-<div style="padding-top: 20px;">
-    <input type="button" value="Create One Order" id="createOneRandomOrder" />
+#rightHalf {
+
+            width: 52%;
+        position: absolute;
+        right: 0px;
+        height: 100%;
+    }
+
+</style>
+<div >
+    <div id="leftHalf">
+    </div>
+    <div id="rightHalf">
+        <div style="padding-top: 20px;">
+            <input type="button" value="Create One Order" id="createOneRandomOrder" />
+            <br />
+            <input type="button" value="Clean Up DB" id="cleanUpDatabase" />
+        </div>
+    </div>
 </div>
-<br />
-<input type="button" value="Clean Up DB" id="cleanUpDatabase" />
+
+
+
+
 <script type="text/javascript">
     $(document).ready(function () {
 
