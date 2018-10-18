@@ -15,7 +15,7 @@ namespace DistributedPizza.Core.Queues
     {
         private const string MyQueueUrl = "https://sqs.us-east-1.amazonaws.com/047637105360/PizzaOrderQueue";
 
-        public async Task QueueOrder(Order order)
+        public void QueueOrder(Order order)
         {
             AmazonSQSConfig amazonSQSConfig = new AmazonSQSConfig();
 
@@ -32,8 +32,12 @@ namespace DistributedPizza.Core.Queues
                 MessageBody = payload
             };
 
-            SendMessageResponse sendMessageResponse =
-               await  amazonSQSClient.SendMessageAsync(sendMessageRequest);
+            Task.Run(async () =>
+            {
+                SendMessageResponse sendMessageResponse =
+                    await amazonSQSClient.SendMessageAsync(sendMessageRequest);
+            });
+
         }
 
         public void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)

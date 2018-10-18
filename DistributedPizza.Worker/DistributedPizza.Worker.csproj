@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Microsoft.AspNet.SignalR.Client" Version="2.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.Orleans.Client" Version="2.0.3" />
@@ -24,6 +25,7 @@
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="2.0.0" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="2.0.4" />
     <PackageReference Include="Microsoft.Orleans.Streaming.SQS" Version="2.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NLog.Extensions.Logging" Version="1.2.1" />
     <PackageReference Include="RestSharp.NetCore" Version="105.2.3" />
     <PackageReference Include="Stateless" Version="4.2.1" />

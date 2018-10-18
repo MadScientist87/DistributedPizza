@@ -8,6 +8,7 @@ using DistributedPizza.Core.Data.Entities;
 using DistributedPizza.Core.Data.Models;
 using DistributedPizza.Core.StateMachines;
 using DistributedPizza.Tests;
+using Microsoft.AspNet.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Concurrency;
@@ -39,13 +40,15 @@ namespace DistributedPizza.Core.Grains
         {
             this._logger = logger;
             _mapper = mapper;
+
+
         }
 
         public override async Task OnActivateAsync()
         {
             // We created the utility at activation time.
             await base.OnActivateAsync();
-           // await base.ReadStateAsync();
+            // await base.ReadStateAsync();
 
             if (State.Order != null)
                 await ((IOrderGrain)this).SetupOrder(State.Order);
@@ -58,7 +61,7 @@ namespace DistributedPizza.Core.Grains
             _order = order;
 
             _logger.LogInformation($"Entering order");
-
+            OrderAPI.BroadCastMessage($"The status of your order for order number {order.OrderReferenceId} is {order.Status}.");
             foreach (var pizza in _order.Pizza)
             {
                 var grain = GrainFactory.GetGrain<IPizzaGrain>(pizza.Id);
@@ -69,7 +72,7 @@ namespace DistributedPizza.Core.Grains
             //Write grain to persistent storage
             base.State.Order = order;
             // base.State.PizzasGrains = _pizzaGrains;
-           // await WriteStateAsync();
+            // await WriteStateAsync();
 
             return true;
         }
@@ -86,7 +89,7 @@ namespace DistributedPizza.Core.Grains
             if (old != null) old.Status = pizza.Status;
             if (old != null) _logger.LogInformation($"Order has been updated new status {old.Status}");
             var orderStateMachine = new OrderStateMachine(_order);
-            if (orderStateMachine.CanFire(Trigger.UpdateOrder))
+            if (orderStateMachine.CanFire(Trigger.UpdateOrder) && _order.Status <= Status.ReadyForDelivery)
             {
                 orderStateMachine.Fire(Trigger.UpdateOrder);
                 UpdateOrderForAPI(_order);
@@ -97,7 +100,12 @@ namespace DistributedPizza.Core.Grains
                 if (orderStateMachine.CanFire(Trigger.UpdateOrder))
                 {
                     orderStateMachine.Fire(Trigger.UpdateOrder);
-                    UpdateOrderForAPI(_order);
+                    if (_order.Status != Status.Delivered)
+                        UpdateOrderForAPI(_order);
+                    else
+                    {
+                        UpdateOrderForAPI(_order, false);
+                    }
                 }
 
                 if (_order.Status == Status.Delivered)
@@ -120,11 +128,23 @@ namespace DistributedPizza.Core.Grains
             return Task.FromResult(true);
         }
 
-        private void UpdateOrderForAPI(Order order)
+        private void UpdateOrderForAPI(Order order, bool sendsignalr = true)
         {
+
+
             OrderDTO orderDTO = _mapper.Map<Order, OrderDTO>(order);
 
             OrderAPI.UpdateOrder(orderDTO);
+            try
+            {
+                if (sendsignalr)
+                    OrderAPI.BroadCastMessage($"The status of your order for order number {order.OrderReferenceId} is {order.Status}.");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 

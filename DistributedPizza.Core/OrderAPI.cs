@@ -21,6 +21,16 @@ namespace DistributedPizza.Core
             var response = client.ExecuteAsync(request);
         }
 
+        public static void BroadCastMessage(string message)
+        {
+            var client = new RestClient("http://localhost/distributedpizza.web/");
+            var request = new RestRequest("/home/BroadCastMessage", Method.GET);
+
+            request.AddParameter("message", message);
+
+            var response = client.ExecuteAsync(request);
+        }
+
         public static async Task<RestResponse> ExecuteAsync(this RestClient client, RestRequest request)
         {
             TaskCompletionSource<IRestResponse> taskCompletion = new TaskCompletionSource<IRestResponse>();

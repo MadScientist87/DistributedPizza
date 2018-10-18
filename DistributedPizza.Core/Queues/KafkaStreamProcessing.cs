@@ -15,7 +15,7 @@ namespace DistributedPizza.Core.Queues
 {
     public class KafkaStreamProcessing : IStreamProcessingQueue
     {
-        public async Task QueueOrder(Order order)
+        public void QueueOrder(Order order)
         {
             var orderJson = JsonConvert.SerializeObject(order);
             string payload = orderJson;
@@ -25,7 +25,11 @@ namespace DistributedPizza.Core.Queues
             var options = new KafkaOptions(uri);
             var router = new BrokerRouter(options);
             var client = new Producer(router);
-            await client.SendMessageAsync(topic, new List<Message> { msg });
+            Task.Run(async () =>
+            {
+                await client.SendMessageAsync(topic, new List<Message> { msg });
+
+            });
         }
 
         public void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
@@ -42,8 +46,8 @@ namespace DistributedPizza.Core.Queues
             {
                 var order = JsonConvert.DeserializeObject<Order>(Encoding.UTF8.GetString(message.Value));
                 orders.Add(order);
-               Task.Run(async () => { await SiloManager.StartOrder(order); });
-
+                Console.WriteLine(Encoding.UTF8.GetString(message.Value));
+                Task.Run(async () => { await SiloManager.StartOrder(order); });
 
                 count++;
 

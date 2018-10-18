@@ -5,12 +5,14 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Results;
 using AutoMapper;
 using DistributedPizza.Core;
 using DistributedPizza.Core.Data;
 using DistributedPizza.Core.Data.Entities;
 using DistributedPizza.Core.Data.Models;
 using DistributedPizza.Core.Queues;
+using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 
 namespace DistributedPizza.Web.Api.Controllers
@@ -29,9 +31,10 @@ namespace DistributedPizza.Web.Api.Controllers
 
         [HttpPost]
         [Route("create")]
-        public async Task<IHttpActionResult> Post(OrderDTO orderDTO)
+        public IHttpActionResult Post(OrderDTO orderDTO)
         {
             Order order = _mapper.Map<OrderDTO, Order>(orderDTO);
+            order.Status = Status.Started;
             order.CreateDate = DateTime.Now;
             BetterRandom random = new BetterRandom();
             var orderManager = new OrderManager(_distributedPizzaDbContext, random);
@@ -40,7 +43,11 @@ namespace DistributedPizza.Web.Api.Controllers
             _distributedPizzaDbContext.SaveChanges();
 
             IStreamProcessingQueue queue = new KafkaStreamProcessing();
-            await queue.QueueOrder(order);
+
+            queue.QueueOrder(order);
+
+
+
             return Ok(new OrderResponseDTO { OrderReferenceId = order.OrderReferenceId });
         }
 
@@ -48,7 +55,7 @@ namespace DistributedPizza.Web.Api.Controllers
         [Route("update")]
         public IHttpActionResult Update(OrderDTO orderDTO)
         {
-           var order= _distributedPizzaDbContext.Orders.SingleOrDefault(a=>a.Id == orderDTO.Id);
+            var order = _distributedPizzaDbContext.Orders.SingleOrDefault(a => a.Id == orderDTO.Id);
 
             if (order != null)
             {
@@ -56,7 +63,7 @@ namespace DistributedPizza.Web.Api.Controllers
 
                 foreach (var pizzaDTO in orderDTO.Pizza)
                 {
-                    var pizza=order.Pizza.SingleOrDefault(a => a.Id == pizzaDTO.Id);
+                    var pizza = order.Pizza.SingleOrDefault(a => a.Id == pizzaDTO.Id);
                     if (pizza != null) pizza.Status = pizzaDTO.PizzaStatus;
                 }
             }
@@ -65,6 +72,7 @@ namespace DistributedPizza.Web.Api.Controllers
 
             return Ok();
         }
-    }
 
+      
+    }
 }
