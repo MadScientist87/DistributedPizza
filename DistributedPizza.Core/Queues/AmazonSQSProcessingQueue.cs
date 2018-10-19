@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon;
+using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using DistributedPizza.Core.Data.Entities;
@@ -32,12 +34,7 @@ namespace DistributedPizza.Core.Queues
                 MessageBody = payload
             };
 
-            Task.Run(async () =>
-            {
-                SendMessageResponse sendMessageResponse =
-                    await amazonSQSClient.SendMessageAsync(sendMessageRequest);
-            });
-
+            amazonSQSClient.SendMessageAsync(sendMessageRequest).Wait();
         }
 
         public void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
@@ -66,14 +63,18 @@ namespace DistributedPizza.Core.Queues
                         var order = JsonConvert.DeserializeObject<Order>(result.Messages[i].Body);
                         orders.Add(order);
                         Task.Run(async () => { await SiloManager.StartOrder(order); });
+
+                        Console.WriteLine(order);
                         count++;
-                        amazonSQSClient.DeleteMessage(MyQueueUrl, result.Messages[i].ReceiptHandle);
+                        try
+                        {
+                            amazonSQSClient.DeleteMessage(MyQueueUrl, result.Messages[i].ReceiptHandle);
 
-                        //if (messagesToRetreive != null && count >= messagesToRetreive)
-                        //{
-
-                        //    break;
-                        //}
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
                     }
                 }
                 Thread.Sleep(1000);

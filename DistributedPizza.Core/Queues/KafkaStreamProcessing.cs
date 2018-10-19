@@ -6,9 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DistributedPizza.Core.Data.Entities;
-using KafkaNet;
-using KafkaNet.Model;
-using KafkaNet.Protocol;
+using Confluent.Kafka;
 using Newtonsoft.Json;
 
 namespace DistributedPizza.Core.Queues
@@ -17,43 +15,96 @@ namespace DistributedPizza.Core.Queues
     {
         public void QueueOrder(Order order)
         {
-            var orderJson = JsonConvert.SerializeObject(order);
-            string payload = orderJson;
-            string topic = "PizzaOrderTopic";
-            Message msg = new Message(payload);
-            Uri uri = new Uri(ConfigurationManager.AppSettings.GetValueOrDefault("KafkaQueueUrl", "http://localhost:9092"));
-            var options = new KafkaOptions(uri);
-            var router = new BrokerRouter(options);
-            var client = new Producer(router);
-            Task.Run(async () =>
+            try
             {
-                await client.SendMessageAsync(topic, new List<Message> { msg });
+                var orderJson = JsonConvert.SerializeObject(order);
+                string payload = orderJson;
+                string topic = "PizzaOrderTopic";
 
-            });
+                var config = new ProducerConfig { BootstrapServers = "localhost:9092" };
+                using (var p = new Producer<Null, string>(config))
+                {
+
+                    try
+                    {
+                        Task.Run(async () =>
+                            {
+                                var dr = await p.ProduceAsync(topic, new Message<Null, string> { Value = payload });
+                                Console.WriteLine($"Delivered '{dr.Value}' to '{dr.TopicPartitionOffset}'");
+
+                            });
+                    }
+                    catch (KafkaException e)
+                    {
+                         Console.WriteLine($"Delivery failed: {e.Error.Reason}");
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
         }
 
         public void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
         {
-            var count = 0;
-            var orders = new List<Order>();
-            string topic = "PizzaOrderTopic";
-            Uri uri = new Uri(ConfigurationManager.AppSettings.GetValueOrDefault("KafkaQueueUrl", "http://localhost:9092"));
-            var options = new KafkaOptions(uri);
-
-            var router = new BrokerRouter(options);
-            var consumer = new Consumer(new ConsumerOptions(topic, router));
-            foreach (var message in consumer.Consume(token))
+            try
             {
-                var order = JsonConvert.DeserializeObject<Order>(Encoding.UTF8.GetString(message.Value));
-                orders.Add(order);
-                Console.WriteLine(Encoding.UTF8.GetString(message.Value));
-                Task.Run(async () => { await SiloManager.StartOrder(order); });
+                var count = 0;
+                var orders = new List<Order>();
 
-                count++;
+                var conf = new ConsumerConfig
+                {
+                    GroupId = "PizzaOrderTopicGroup",
+                    BootstrapServers = "localhost:9092",
+                    // Note: The AutoOffsetReset property determines the start offset in the event
+                    // there are not yet any committed offsets for the consumer group for the
+                    // topic/partitions of interest. By default, offsets are committed
+                    // automatically, so in this example, consumption will only start from the
+                    // eariest message in the topic 'my-topic' the first time you run the program.
+                    AutoOffsetReset = AutoOffsetResetType.Earliest
+                };
+                using (var c = new Consumer<Ignore, string>(conf))
+                {
+                    c.Subscribe("PizzaOrderTopic");
 
-                //if (messagesToRetreive != null && count >= messagesToRetreive)
-                //    break;
+                    bool consuming = true;
+                    // The client will automatically recover from non-fatal errors. You typically
+                    // don't need to take any action unless an error is marked as fatal.
+                    c.OnError += (_, e) => consuming = !e.IsFatal;
+
+                    while (consuming)
+                    {
+                        if (token != null && ((CancellationToken)token).IsCancellationRequested || (messagesToRetreive != null && count >= messagesToRetreive))
+                        {
+                            break;
+                        }
+                        try
+                        {
+                            var cr = c.Consume();
+                            var order = JsonConvert.DeserializeObject<Order>(cr.Value);
+                            orders.Add(order);
+                            Task.Run(async () => { await SiloManager.StartOrder(order); });
+                            count++;
+                            // Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}'.");
+                        }
+                        catch (ConsumeException e)
+                        {
+                            // Console.WriteLine($"Error occured: {e.Error.Reason}");
+                        }
+                    }
+
+                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                    c.Close();
+                }
             }
+            catch (Exception e)
+            {
+                // Console.WriteLine(e);
+            }
+
 
             //return orders;
         }

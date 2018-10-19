@@ -32,15 +32,21 @@ namespace DistributedPizza.Worker
                 var token = new CancellationTokenSource();
                 var host = await StartSilo();
                 Console.WriteLine("Press Enter to terminate...");
-                
-                IStreamProcessingQueue kafkaQueue = new KafkaStreamProcessing();
-                //IStreamProcessingQueue amazonQueue = new AmazonSQSProcessingQueue();
-                  Task.Run( () =>
-                 {
-                     kafkaQueue.RetrieveOrders(null, token.Token);
-                     // amazonQueue.RetrieveOrders(null, token.Token);
 
-                 }, token.Token);
+                IStreamProcessingQueue kafkaQueue = new KafkaStreamProcessing();
+                IStreamProcessingQueue amazonQueue = new AmazonSQSProcessingQueue();
+                Task.Run(() =>
+              {
+                  kafkaQueue.RetrieveOrders(null, token.Token);
+
+              }, token.Token);
+                Task.Run(() =>
+                    {
+                        amazonQueue.RetrieveOrders(null, token.Token);
+
+                    }, token.Token);
+
+
                 Console.ReadLine();
                 Console.WriteLine("Shutting Down...");
 
@@ -96,7 +102,7 @@ namespace DistributedPizza.Worker
             {
                 MapperConfigurationHelper.Build(cfg);
             });
-            var mapper= new Mapper(mapperConfig);
+            var mapper = new Mapper(mapperConfig);
             NLog.LogManager.LoadConfiguration("nlog.config");
             services.TryAddSingleton<ILoggerFactory>(loggerFactory);
             services.TryAddSingleton<IMapper>(mapper);
