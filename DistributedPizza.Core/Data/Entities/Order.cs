@@ -20,6 +20,8 @@ namespace DistributedPizza.Core.Data.Entities
         public Status Status { get; set; }
         public virtual ICollection<Pizza> Pizza { get; set; }
         public DateTime CreateDate { get; set; }
+        public QueueType QueueType { get; set; }
+        public bool ReportBackToClient { get; set; }
     }
 
     public enum Status

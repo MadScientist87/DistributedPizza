@@ -43,9 +43,6 @@
     <Reference Include="AWSSDK.SQS, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
       <HintPath>..\packages\AWSSDK.SQS.3.3.3.22\lib\net45\AWSSDK.SQS.dll</HintPath>
     </Reference>
-    <Reference Include="Confluent.Kafka, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Confluent.Kafka.1.0.0-beta2\lib\net46\Confluent.Kafka.dll</HintPath>
-    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
       <Private>True</Private>
@@ -53,6 +50,9 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="kafka-net, Version=0.9.0.65, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\kafka-net.0.9.0.65\lib\net45\kafka-net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.3.0\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
@@ -133,14 +133,23 @@
     <Reference Include="NLog.Extensions.Logging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.Extensions.Logging.1.2.1\lib\net461\NLog.Extensions.Logging.dll</HintPath>
     </Reference>
+    <Reference Include="Orleans.Clustering.AdoNet, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Orleans.Clustering.AdoNet.2.1.2\lib\netstandard2.0\Orleans.Clustering.AdoNet.dll</HintPath>
+    </Reference>
     <Reference Include="Orleans.CodeGeneration, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Orleans.OrleansCodeGenerator.2.0.5\lib\netstandard2.0\Orleans.CodeGeneration.dll</HintPath>
     </Reference>
     <Reference Include="Orleans.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Orleans.Core.2.0.3\lib\netstandard2.0\Orleans.Core.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Orleans.Core.2.1.2\lib\netstandard2.0\Orleans.Core.dll</HintPath>
     </Reference>
     <Reference Include="Orleans.Core.Abstractions, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Orleans.Core.Abstractions.2.0.0\lib\netstandard2.0\Orleans.Core.Abstractions.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Orleans.Core.Abstractions.2.1.2\lib\netstandard2.0\Orleans.Core.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Orleans.Runtime.Abstractions, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Orleans.Runtime.Abstractions.2.1.2\lib\netstandard2.0\Orleans.Runtime.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="OrleansProviders, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Orleans.OrleansProviders.2.1.2\lib\netstandard2.0\OrleansProviders.dll</HintPath>
     </Reference>
     <Reference Include="RestSharp.NetCore">
       <HintPath>C:\Users\jbrath200\.nuget\packages\restsharp.netcore\105.2.3\lib\netstandard1.6\RestSharp.NetCore.dll</HintPath>
@@ -179,6 +188,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Common, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.Common.4.3.0\lib\net451\System.Data.Common.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Diagnostics.FileVersionInfo, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Diagnostics.FileVersionInfo.4.3.0\lib\net46\System.Diagnostics.FileVersionInfo.dll</HintPath>
       <Private>True</Private>
@@ -295,6 +309,7 @@
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -357,6 +372,30 @@
     <Compile Include="Migrations\201810141923254_addCreatedDate.Designer.cs">
       <DependentUpon>201810141923254_addCreatedDate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201810211612533_QueueType.cs" />
+    <Compile Include="Migrations\201810211612533_QueueType.Designer.cs">
+      <DependentUpon>201810211612533_QueueType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201810211623041_ReportBackToClient.cs" />
+    <Compile Include="Migrations\201810211623041_ReportBackToClient.Designer.cs">
+      <DependentUpon>201810211623041_ReportBackToClient.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201810211833139_Relationships.cs" />
+    <Compile Include="Migrations\201810211833139_Relationships.Designer.cs">
+      <DependentUpon>201810211833139_Relationships.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201810211835391_Relationships2.cs" />
+    <Compile Include="Migrations\201810211835391_Relationships2.Designer.cs">
+      <DependentUpon>201810211835391_Relationships2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201810211847369_Relationships3.cs" />
+    <Compile Include="Migrations\201810211847369_Relationships3.Designer.cs">
+      <DependentUpon>201810211847369_Relationships3.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201810211849488_Relationships4.cs" />
+    <Compile Include="Migrations\201810211849488_Relationships4.Designer.cs">
+      <DependentUpon>201810211849488_Relationships4.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="NinjectBindings.cs" />
     <Compile Include="Objects.cs" />
@@ -388,6 +427,24 @@
     <EmbeddedResource Include="Migrations\201810141923254_addCreatedDate.resx">
       <DependentUpon>201810141923254_addCreatedDate.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810211612533_QueueType.resx">
+      <DependentUpon>201810211612533_QueueType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810211623041_ReportBackToClient.resx">
+      <DependentUpon>201810211623041_ReportBackToClient.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810211833139_Relationships.resx">
+      <DependentUpon>201810211833139_Relationships.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810211835391_Relationships2.resx">
+      <DependentUpon>201810211835391_Relationships2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810211847369_Relationships3.resx">
+      <DependentUpon>201810211847369_Relationships3.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810211849488_Relationships4.resx">
+      <DependentUpon>201810211849488_Relationships4.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\AWSSDK.SQS.3.3.3.22\analyzers\dotnet\cs\AWSSDK.SQS.CodeAnalysis.dll" />
@@ -402,7 +459,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Orleans.OrleansCodeGenerator.Build.2.0.5\build\Microsoft.Orleans.OrleansCodeGenerator.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Orleans.OrleansCodeGenerator.Build.2.0.5\build\Microsoft.Orleans.OrleansCodeGenerator.Build.targets'))" />
     <Error Condition="!Exists('..\packages\librdkafka.redist.1.0.0-PRE1\build\librdkafka.redist.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\librdkafka.redist.1.0.0-PRE1\build\librdkafka.redist.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Orleans.Clustering.AdoNet.2.1.2\build\netstandard2.0\Microsoft.Orleans.Clustering.AdoNet.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Orleans.Clustering.AdoNet.2.1.2\build\netstandard2.0\Microsoft.Orleans.Clustering.AdoNet.targets'))" />
   </Target>
+  <Import Project="..\packages\Microsoft.Orleans.Clustering.AdoNet.2.1.2\build\netstandard2.0\Microsoft.Orleans.Clustering.AdoNet.targets" Condition="Exists('..\packages\Microsoft.Orleans.Clustering.AdoNet.2.1.2\build\netstandard2.0\Microsoft.Orleans.Clustering.AdoNet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

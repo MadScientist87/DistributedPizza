@@ -32,17 +32,19 @@ namespace DistributedPizza.Worker
                 var token = new CancellationTokenSource();
                 var host = await StartSilo();
                 Console.WriteLine("Press Enter to terminate...");
-
+                var loggerFactory = new LoggerFactory();
+                loggerFactory.AddNLog(new NLogProviderOptions { CaptureMessageTemplates = true, CaptureMessageProperties = true });
+                NLog.LogManager.LoadConfiguration("nlog.config");
                 IStreamProcessingQueue kafkaQueue = new KafkaStreamProcessing();
                 IStreamProcessingQueue amazonQueue = new AmazonSQSProcessingQueue();
                 Task.Run(() =>
               {
-                  kafkaQueue.RetrieveOrders(null, token.Token);
+                  kafkaQueue.RetrieveOrders(loggerFactory.CreateLogger("subservice"), null, token.Token);
 
               }, token.Token);
-                Task.Run(() =>
+              Task.Run(() =>
                     {
-                        amazonQueue.RetrieveOrders(null, token.Token);
+                        amazonQueue.RetrieveOrders(loggerFactory.CreateLogger("subservice"),null, token.Token);
 
                     }, token.Token);
 
@@ -66,14 +68,20 @@ namespace DistributedPizza.Worker
         private static async Task<ISiloHost> StartSilo()
         {
 
-
+            const string connectionString = "Data Source=.;Database=DistributedPizzaOrleans;Trusted_Connection=true;MultipleActiveResultSets=True";
             // define the cluster configuration
             var builder = new SiloHostBuilder()
-                .UseLocalhostClustering()
+                 .UseDashboard(options => { })
+                .UseAdoNetClustering(options =>
+                {
+                    options.ConnectionString = connectionString;
+                    options.Invariant = "System.Data.SqlClient";
+                })
+                .ConfigureEndpoints(siloPort:Convert.ToInt32(ConfigurationManager.AppSettings["OlreansSiloPort"]), gatewayPort: Convert.ToInt32(ConfigurationManager.AppSettings["OlreansGatewayPort"]))
                 .AddAdoNetGrainStorage("OrleansStorage", options =>
                 {
                     options.Invariant = "System.Data.SqlClient";
-                    options.ConnectionString = "Data Source=.;Database=DistributedPizzaOrleans;Trusted_Connection=true;MultipleActiveResultSets=True";
+                    options.ConnectionString = connectionString;
                     options.UseJsonFormat = true;
                 })
                 .Configure<ClusterOptions>(options =>

@@ -7,6 +7,7 @@ using DistributedPizza.Core.Data.Entities;
 using DistributedPizza.Core.Grains;
 using Orleans;
 using Orleans.Configuration;
+using Orleans.Hosting;
 using Orleans.Runtime;
 
 namespace DistributedPizza.Core
@@ -27,14 +28,20 @@ namespace DistributedPizza.Core
         private static int attempt = 0;
         private static async Task<IClusterClient> StartClientWithRetries()
         {
+            const string connectionString = "Data Source=.;Database=DistributedPizzaOrleans;Trusted_Connection=true;MultipleActiveResultSets=True";
             attempt = 0;
             IClusterClient client;
             client = new ClientBuilder()
-                .UseLocalhostClustering()
+                
                 .Configure<ClusterOptions>(options =>
                 {
                     options.ClusterId = "dev";
                     options.ServiceId = "HelloWorldApp";
+                })
+                .UseAdoNetClustering(options =>
+                {
+                    options.ConnectionString = connectionString;
+                    options.Invariant = "System.Data.SqlClient";
                 })
                 .Build();
 

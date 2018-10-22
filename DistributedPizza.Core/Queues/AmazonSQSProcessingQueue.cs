@@ -9,6 +9,7 @@ using Amazon.Runtime;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using DistributedPizza.Core.Data.Entities;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace DistributedPizza.Core.Queues
@@ -37,7 +38,7 @@ namespace DistributedPizza.Core.Queues
             amazonSQSClient.SendMessageAsync(sendMessageRequest).Wait();
         }
 
-        public void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
+        public void RetrieveOrders(ILogger _logger,int? messagesToRetreive = null, CancellationToken? token = null)
         {
             var orders = new List<Order>();
 

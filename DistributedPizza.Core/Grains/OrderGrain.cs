@@ -61,7 +61,8 @@ namespace DistributedPizza.Core.Grains
             _order = order;
 
             _logger.LogInformation($"Entering order");
-            OrderAPI.BroadCastMessage($"The status of your order for order number {order.OrderReferenceId} is {order.Status}.");
+            if (order.ReportBackToClient)
+                OrderAPI.BroadCastMessage($"The status of your order for order number {order.OrderReferenceId} is {order.Status}.");
             foreach (var pizza in _order.Pizza)
             {
                 var grain = GrainFactory.GetGrain<IPizzaGrain>(pizza.Id);
@@ -137,7 +138,7 @@ namespace DistributedPizza.Core.Grains
             OrderAPI.UpdateOrder(orderDTO);
             try
             {
-                if (sendsignalr)
+                if (sendsignalr && order.ReportBackToClient)
                     OrderAPI.BroadCastMessage($"The status of your order for order number {order.OrderReferenceId} is {order.Status}.");
 
             }

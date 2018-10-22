@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Results;
@@ -33,19 +34,36 @@ namespace DistributedPizza.Controllers
         }
 
         [System.Web.Mvc.HttpPost]
-        [System.Web.Mvc.Route("home/createOneRandomOrder")]
-        public ActionResult CreateOneRandomOrder()
+        [System.Web.Mvc.Route("home/createRandomOrder")]
+        public ActionResult CreateRandomOrder(OrderInfoDTO orderInfoDTO)
         {
+            IRestResponse<OrderResponseDTO> response = null;
+            var toppings = _distributedPizzaDbContext.Toppings.ToList();
             BetterRandom random = new BetterRandom();
-            var orderManager = new OrderManager(_distributedPizzaDbContext, random);
-            var order = orderManager.GenerateRandomOrder();
-            var client = new RestClient("http://localhost/DistributedPizza.Web.Api");
-            var request = new RestRequest("api/orders/create", Method.POST);
-            request.AddHeader("Accept", "application/json");
-            request.RequestFormat = DataFormat.Json;
-            request.AddBody(order);
-            var response = client.Execute<OrderResponseDTO>(request);
-            return Json(response.Data);
+
+            for (int i = 0; i < orderInfoDTO.NumberOfRequests; i++)
+            {
+                var orderManager = new OrderManager(toppings, random);
+                var order = orderManager.GenerateRandomOrder();
+                order.QueueType = orderInfoDTO.QueueType;
+                order.ReportBackToClient = orderInfoDTO.NumberOfRequests == 1;
+                var client = new RestClient("http://localhost/DistributedPizza.Web.Api");
+                var request = new RestRequest("api/orders/create", Method.POST);
+                request.AddHeader("Accept", "application/json");
+                request.RequestFormat = DataFormat.Json;
+                request.AddBody(order);
+                response = client.Execute<OrderResponseDTO>(request);
+            }
+
+            if (orderInfoDTO.NumberOfRequests == 1 & response != null)
+            {
+                response.Data.NumberOfRequests = orderInfoDTO.NumberOfRequests;
+                return Json(response.Data);
+            }
+            else
+            {
+                return Json(new OrderResponseDTO { NumberOfRequests = orderInfoDTO.NumberOfRequests });
+            }
         }
 
         [System.Web.Mvc.HttpPost]

@@ -16,6 +16,8 @@ namespace DistributedPizza.Core.Data.Models
         public PizzaDTO[] Pizza { get; set; }
         public Status Status { get; set; }
         public DateTime CreateDate { get; set; }
+        public QueueType QueueType { get; set; }
+        public bool ReportBackToClient { get; set; }
     }
 
     public class PizzaDTO

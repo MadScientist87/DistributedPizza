@@ -13,10 +13,11 @@ namespace DistributedPizza.Core
     {
         readonly IDistributedPizzaDbContext distributedPizzaDbContext;
         private readonly Random random;
+        List<Toppings> _toppingsFromDB = new List<Toppings>();
         [Inject]
-        public PizzaManager(IDistributedPizzaDbContext distributedPizzaDbContext, Random random)
+        public PizzaManager(List<Toppings> toppingsFromDB, Random random)
         {
-            this.distributedPizzaDbContext = distributedPizzaDbContext;
+            _toppingsFromDB = toppingsFromDB;
             this.random = new Random();
         }
 
@@ -38,8 +39,8 @@ namespace DistributedPizza.Core
             var pizza = new Pizza
             {
                 SauceType = Extensions.Randomize<SauceType>(),
-                Size = Extensions.Randomize<Size>(),
-                Toppings = GetRandomToppings()
+                Size = Extensions.Randomize<Size>()
+                //Toppings = GetRandomToppings()
             };
 
             return pizza;
@@ -59,7 +60,7 @@ namespace DistributedPizza.Core
         }
         private Toppings GetRandomTopping()
         {
-            var toppings = this.distributedPizzaDbContext.Toppings.ToList();
+            var toppings = _toppingsFromDB;
             int index = random.Next(toppings.Count);
             var topping = toppings[index];
             return topping;

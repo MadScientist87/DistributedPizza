@@ -7,18 +7,20 @@ using System.Text;
 using System.Threading.Tasks;
 using DistributedPizza.Core.Data;
 using DistributedPizza.Core.Data.Entities;
+using Newtonsoft.Json;
 using Ninject;
+using RestSharp;
 
 namespace DistributedPizza.Core
 {
     public class OrderManager
     {
-        readonly IDistributedPizzaDbContext distributedPizzaDbContext;
         private readonly BetterRandom random;
+        List<Toppings> _toppingsFromDB = new List<Toppings>();
         [Inject]
-        public OrderManager(IDistributedPizzaDbContext distributedPizzaDbContext, BetterRandom random)
+        public OrderManager(List<Toppings> toppingsFromDB, BetterRandom random)
         {
-            this.distributedPizzaDbContext = distributedPizzaDbContext;
+            _toppingsFromDB = toppingsFromDB;
             this.random = random;
         }
 
@@ -26,8 +28,7 @@ namespace DistributedPizza.Core
         {
             var customerManager = new CustomerManager(random);
 
-
-            var pizzaManger = new PizzaManager(this.distributedPizzaDbContext, random);
+            var pizzaManger = new PizzaManager(_toppingsFromDB, random);
             var customer = customerManager.GetRandomCustomer(random.Next(0, 6));
             var randomPizzas = pizzaManger.GetRandomPizzas();
 
@@ -43,38 +44,23 @@ namespace DistributedPizza.Core
 
         public void GenerateNextOrderNumber(Order order)
         {
-            DateTime today = DateTime.Now;
-            PrefixSeq rec = GetNextSeq("DBP" + today.ToString("yy") + today.DayOfYear.ToString("D3"));
-            order.OrderReferenceId = rec.Prefix + rec.Seq.ToString("00");
+            order.OrderReferenceId = GetNextSeq();
         }
 
 
-        private PrefixSeq GetNextSeq(string prefix)
+        private string GetNextSeq()
         {
-            var db = this.distributedPizzaDbContext;
-            PrefixSeq rec = db.PrefixSeq.SingleOrDefault(a => a.Prefix == prefix);
-            if (rec == null)
-                db.PrefixSeq.Add(rec = new PrefixSeq { Prefix = prefix, Seq = 1 });
-            else
-                rec.Seq += 1;
+            //var client = new RestClient("http://localhost/distributedpizza.web.api/");
+            //var request = new RestRequest("/api/orders/GetNextSeq", Method.POST);
 
-            try
-            {
-                db.SaveChanges();
-                return rec;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                db.Refresh(RefreshMode.StoreWins, rec);
-                return GetNextSeq(prefix);
-            }
-            catch (DbUpdateException exc)
-            {
-                if (!exc.Message.Contains("with unique index 'IX_Prefix_IdType'"))
-                    throw;
+            //request.RequestFormat = DataFormat.Json;
 
-                return GetNextSeq(prefix);
-            }
+            //var response = client.ExecuteAsync(request).w;
+            //var prefixdto = JsonConvert.DeserializeObject<PrefixDTO>(response.Result.Content);
+            //return prefixdto.OrderId;
+            return string.Empty;
         }
+
+
     }
 }

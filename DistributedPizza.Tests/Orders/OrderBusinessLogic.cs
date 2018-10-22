@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using DistributedPizza.Core;
 using DistributedPizza.Core.Data;
@@ -17,8 +18,10 @@ namespace DistributedPizza.Tests.Orders
             IKernel _Kernal = new StandardKernel();
             _Kernal.Load(Assembly.GetExecutingAssembly());
             IDistributedPizzaDbContext dbContext = _Kernal.Get<DistributedPizzaDbContext>();
+
+            var toppings = dbContext.Toppings.ToList();
             BetterRandom random = new BetterRandom();
-            var orderManager = new OrderManager(dbContext, random);
+            var orderManager = new OrderManager(toppings, random);
             
             var order = orderManager.GenerateRandomOrder();
             var order2 = orderManager.GenerateRandomOrder();

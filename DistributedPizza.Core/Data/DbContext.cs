@@ -45,6 +45,8 @@ namespace DistributedPizza.Core.Data
                             mc.MapLeftKey("Pizza_Id");
                             mc.MapRightKey("Toppings_Id");
                         });
+
+            base.OnModelCreating(modelBuilder);
         }
 
         public void Refresh(RefreshMode refreshMode, object entity)

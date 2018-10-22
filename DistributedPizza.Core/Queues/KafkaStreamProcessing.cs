@@ -6,8 +6,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DistributedPizza.Core.Data.Entities;
-using Confluent.Kafka;
+using KafkaNet;
+using KafkaNet.Model;
+using KafkaNet.Protocol;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Orleans.Runtime;
 
 namespace DistributedPizza.Core.Queues
 {
@@ -15,94 +19,69 @@ namespace DistributedPizza.Core.Queues
     {
         public void QueueOrder(Order order)
         {
+            var orderJson = JsonConvert.SerializeObject(order);
+            string payload = orderJson;
+            string topic = "PizzaOrderTopic";
+
+            var options = new KafkaOptions(new Uri("http://localhost:9092"), new Uri("http://localhost:9092"));
+            var router = new BrokerRouter(options);
+            var client = new Producer(router); ;
+
+
             try
             {
-                var orderJson = JsonConvert.SerializeObject(order);
-                string payload = orderJson;
-                string topic = "PizzaOrderTopic";
-
-                var config = new ProducerConfig { BootstrapServers = "localhost:9092" };
-                using (var p = new Producer<Null, string>(config))
-                {
-
-                    try
+                Task.Run(async () =>
                     {
-                        Task.Run(async () =>
-                            {
-                                var dr = await p.ProduceAsync(topic, new Message<Null, string> { Value = payload });
-                                Console.WriteLine($"Delivered '{dr.Value}' to '{dr.TopicPartitionOffset}'");
+                        await client.SendMessageAsync("PizzaOrderTopic", new[] { new Message(payload) });
 
-                            });
-                    }
-                    catch (KafkaException e)
-                    {
-                         Console.WriteLine($"Delivery failed: {e.Error.Reason}");
-                    }
-
-                }
+                    });
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine($"Delivery failed: {e}");
             }
+
 
         }
 
-        public void RetrieveOrders(int? messagesToRetreive = null, CancellationToken? token = null)
+        public void RetrieveOrders(ILogger _logger, int? messagesToRetreive = null, CancellationToken? token = null)
         {
             try
             {
                 var count = 0;
                 var orders = new List<Order>();
-
-                var conf = new ConsumerConfig
+                var options = new KafkaOptions(new Uri("http://localhost:9092"), new Uri("http://localhost:9092"));
+                var router = new BrokerRouter(options);
+                var consumer = new Consumer(new ConsumerOptions("PizzaOrderTopic", router));
+                foreach (var message in consumer.Consume())
                 {
-                    GroupId = "PizzaOrderTopicGroup",
-                    BootstrapServers = "localhost:9092",
-                    // Note: The AutoOffsetReset property determines the start offset in the event
-                    // there are not yet any committed offsets for the consumer group for the
-                    // topic/partitions of interest. By default, offsets are committed
-                    // automatically, so in this example, consumption will only start from the
-                    // eariest message in the topic 'my-topic' the first time you run the program.
-                    AutoOffsetReset = AutoOffsetResetType.Earliest
-                };
-                using (var c = new Consumer<Ignore, string>(conf))
-                {
-                    c.Subscribe("PizzaOrderTopic");
 
-                    bool consuming = true;
-                    // The client will automatically recover from non-fatal errors. You typically
-                    // don't need to take any action unless an error is marked as fatal.
-                    c.OnError += (_, e) => consuming = !e.IsFatal;
-
-                    while (consuming)
+                    if (token != null && ((CancellationToken)token).IsCancellationRequested || (messagesToRetreive != null && count >= messagesToRetreive))
                     {
-                        if (token != null && ((CancellationToken)token).IsCancellationRequested || (messagesToRetreive != null && count >= messagesToRetreive))
-                        {
-                            break;
-                        }
-                        try
-                        {
-                            var cr = c.Consume();
-                            var order = JsonConvert.DeserializeObject<Order>(cr.Value);
-                            orders.Add(order);
-                            Task.Run(async () => { await SiloManager.StartOrder(order); });
-                            count++;
-                            // Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}'.");
-                        }
-                        catch (ConsumeException e)
-                        {
-                            // Console.WriteLine($"Error occured: {e.Error.Reason}");
-                        }
+                        break;
                     }
+                    try
+                    {
 
-                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
-                    c.Close();
+                        var order = JsonConvert.DeserializeObject<Order>(System.Text.Encoding.Default.GetString(message.Value));
+                        orders.Add(order);
+                        Task.Run(async () => { await SiloManager.StartOrder(order); });
+                        count++;
+                        // Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}'.");
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Info($"Error occured Kafka: {e}");
+                    }
+                    Console.WriteLine("Response: P{0},O{1} : {2}",
+                        message.Meta.PartitionId, message.Meta.Offset, message.Value);
                 }
+
             }
             catch (Exception e)
             {
-                // Console.WriteLine(e);
+                _logger.Info($"Error occured Kafka: {e}");
+                RetrieveOrders(_logger, messagesToRetreive, token);
             }
 
 

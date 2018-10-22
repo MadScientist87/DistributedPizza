@@ -38,4 +38,21 @@ namespace DistributedPizza.Core
             return (RestResponse)(await taskCompletion.Task);
         }
     }
+
+    public class OrderInfoDTO
+    {
+        public int NumberOfRequests { get; set; }
+        public QueueType QueueType { get; set; }
+    }
+
+    public enum QueueType
+    {
+        Kafka,
+        AmazonSQS
+    }
+
+    public class PrefixDTO
+    {
+        public string OrderId { get; set; }
+    }
 }
