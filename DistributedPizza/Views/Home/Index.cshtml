@@ -146,9 +146,9 @@
         </div>
         <div class="container">
             @*<input type="text" id="message" />
-            <input type="button" id="sendmessage" value="Send" />
-            <input type="hidden" id="displayname" />
-            <ul id="discussion"></ul>*@
+                <input type="button" id="sendmessage" value="Send" />
+                <input type="hidden" id="displayname" />
+                <ul id="discussion"></ul>*@
         </div>
         <div style="padding-top: 20px; padding-left: 20px;">
             <label style="width: 140px;">Number Of Requests</label><input type="text" id="numberOfRequests" value="1" />
@@ -177,10 +177,10 @@
             <label style="width: 140px;"> Clean Up the Database</label><input type="button" value="Clean Up DB" id="cleanUpDatabase" />
             <br />
             <label style="width: 140px;"> Show Graph</label><input type="button" value="showGraph" id="showGraph" />
-            
-            </div>
 
-        
+        </div>
+
+
     </div>
 </div>
 
@@ -192,6 +192,17 @@
     var showGraph = true;
 
     $(function () {
+
+
+    });
+
+    $(document).ready(function () {
+        var ctx = document.getElementById("myChart");
+
+
+        $('#myChart').hide();
+
+        // Signal r
         var chat = $.connection.chatHub;
         // Create a function that the hub can call to broadcast messages.
         chat.client.broadcastMessage = function (message) {
@@ -212,13 +223,6 @@
 
         });
 
-    });
-
-    $(document).ready(function () {
-        var ctx = document.getElementById("myChart");
-       
-
-        $('#myChart').hide();
 
         var $loading = $('.linear-activity').hide();
         $(document)
@@ -269,7 +273,7 @@
             });
         });
 
-       
+
 
         $('#showGraph').click(function () {
             if (showGraph) {
@@ -328,13 +332,13 @@
                                     'rgba(255, 99, 132, 0.2)',
                                     'rgba(54, 162, 235, 0.2)',
                                     'rgba(255, 206, 86, 0.2)'
-                        
+
                                 ],
                                 borderColor: [
                                     'rgba(255,99,132,1)',
                                     'rgba(54, 162, 235, 1)',
                                     'rgba(255, 206, 86, 1)'
-                       
+
                                 ],
                                 borderWidth: 1
                             }]
@@ -343,13 +347,13 @@
                             scales: {
                                 yAxes: [{
                                     ticks: {
-                                        beginAtZero:true
+                                        beginAtZero: true
                                     }
                                 }]
                             }
                         }
                     });
-                   
+
 
                 },
                 error: function (request, status, error) {

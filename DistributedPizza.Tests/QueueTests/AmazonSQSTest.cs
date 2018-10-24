@@ -25,7 +25,7 @@ namespace DistributedPizza.Tests.QueueTests
 
             IStreamProcessingQueue queue = new AmazonSQSProcessingQueue();
             queue.QueueOrder(order);
-            var loggerFactory = new LoggerFactory();
+            //var loggerFactory = new LoggerFactory();
            // queue.RetrieveOrders(loggerFactory.CreateLogger("queuetest"), null,1);
             // Assert.AreEqual(orders.First().CustomerName, "test");
         }
