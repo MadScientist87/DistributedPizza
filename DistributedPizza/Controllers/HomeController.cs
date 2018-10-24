@@ -10,6 +10,7 @@ using System.Web.Http.Results;
 using System.Web.Mvc;
 using DistributedPizza.Core;
 using DistributedPizza.Core.Data;
+using DistributedPizza.Core.Data.Entities;
 using DistributedPizza.Core.Data.Models;
 using DistributedPizza.Web.Controllers;
 using DistributedPizza.Web.Controllers;
@@ -64,6 +65,17 @@ namespace DistributedPizza.Controllers
             {
                 return Json(new OrderResponseDTO { NumberOfRequests = orderInfoDTO.NumberOfRequests });
             }
+        }
+
+        [System.Web.Mvc.HttpPost]
+
+        [System.Web.Mvc.Route("home/getorderdata")]
+        public ActionResult getorderdata(OrderInfoDTO orderInfoDTO)
+        {
+            var os = _distributedPizzaDbContext.Orders.Count(a => a.Status == Status.Started);
+            var rd = _distributedPizzaDbContext.Orders.Count(a => a.Status == Status.ReadyForDelivery);
+            var d = _distributedPizzaDbContext.Orders.Count(a => a.Status == Status.Delivered);
+            return Json(new { OrderStarted = os, OrderReadyForDelivery = rd, OrderDelivered = d });
         }
 
         [System.Web.Mvc.HttpPost]

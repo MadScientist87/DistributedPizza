@@ -9,6 +9,7 @@
 <script src="https://code.jquery.com/ui/1.11.3/jquery-ui.min.js"
         integrity="sha256-xI/qyl9vpwWFOXz7+x/9WkG5j/SVnSw21viy8fWwbeE="
         crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
 <script src="~/Scripts/jquery.switcher.min.js"></script>
 <script src="~/Scripts/jquery.toast.min.js"></script>
 <style>
@@ -93,46 +94,51 @@
         height: 100%;
     }
 
-    .indeterminate:before {
-        content: '';
-        position: absolute;
-        height: 100%;
-        background-color: #03A9F4;
-        animation: indeterminate_first 1.5s infinite ease-out;
-    }
+        .indeterminate:before {
+            content: '';
+            position: absolute;
+            height: 100%;
+            background-color: #03A9F4;
+            animation: indeterminate_first 1.5s infinite ease-out;
+        }
 
-    .indeterminate:after {
-        content: '';
-        position: absolute;
-        height: 100%;
-        background-color: #4FC3F7;
-        animation: indeterminate_second 1.5s infinite ease-in;
-    }
+        .indeterminate:after {
+            content: '';
+            position: absolute;
+            height: 100%;
+            background-color: #4FC3F7;
+            animation: indeterminate_second 1.5s infinite ease-in;
+        }
 
     @@keyframes indeterminate_first {
-    0% {
-        left: -100%;
-        width: 100%;
-    }
-    100% {
-        left: 100%;
-        width: 10%;
-    }
+        0% {
+            left: -100%;
+            width: 100%;
+        }
+
+        100% {
+            left: 100%;
+            width: 10%;
+        }
     }
 
     @@keyframes indeterminate_second {
-    0% {
-        left: -150%;
-        width: 100%;
-    }
-    100% {
-        left: 100%;
-        width: 10%;
-    }
+        0% {
+            left: -150%;
+            width: 100%;
+        }
+
+        100% {
+            left: 100%;
+            width: 10%;
+        }
     }
 </style>
 <div>
     <div id="leftHalf">
+        <div style="padding-bottom: 200px;">
+            <canvas id="myChart" width="300" height="300" style="max-height: 500px;"></canvas>
+        </div>
     </div>
     <div id="rightHalf">
         <div class="linear-activity">
@@ -145,11 +151,11 @@
             <ul id="discussion"></ul>*@
         </div>
         <div style="padding-top: 20px; padding-left: 20px;">
-            <label style="width: 140px;">Number Of Requests</label><input type="text" id="numberOfRequests" value="1"/>
-            <br/>
+            <label style="width: 140px;">Number Of Requests</label><input type="text" id="numberOfRequests" value="1" />
+            <br />
             <label style="width: 140px;">
                 Create Order/s
-            </label><input type="button" value="Create Order/s" id="createOneRandomOrder"/>
+            </label><input type="button" value="Create Order/s" id="createOneRandomOrder" />
             <div class="lds-roller">
                 <div></div>
                 <div></div>
@@ -158,17 +164,23 @@
                 <div></div>
                 <div></div>
                 <div></div>
-                <div></div></div>
-            <br/>
-            <br/>
+                <div></div>
+            </div>
+            <br />
+            <br />
             <label style="width: 140px;">
                 Select Queue
             </label>
-            <br/>
+            <br />
             <input type="checkbox" name="great" id="great">
-            <br/>
-            <label style="width: 140px;"> Clean Up the Database</label><input type="button" value="Clean Up DB" id="cleanUpDatabase"/>
-        </div>
+            <br />
+            <label style="width: 140px;"> Clean Up the Database</label><input type="button" value="Clean Up DB" id="cleanUpDatabase" />
+            <br />
+            <label style="width: 140px;"> Show Graph</label><input type="button" value="showGraph" id="showGraph" />
+            
+            </div>
+
+        
     </div>
 </div>
 
@@ -176,6 +188,8 @@
 
 
 <script type="text/javascript">
+
+    var showGraph = true;
 
     $(function () {
         var chat = $.connection.chatHub;
@@ -187,7 +201,7 @@
             $.toast({
                 text: message,
                 hideAfter: false,
-                position : 'top-right' 
+                position: 'top-right'
             });
         };
         // Get the user name and store it to prepend to messages.
@@ -201,6 +215,11 @@
     });
 
     $(document).ready(function () {
+        var ctx = document.getElementById("myChart");
+       
+
+        $('#myChart').hide();
+
         var $loading = $('.linear-activity').hide();
         $(document)
             .ajaxStart(function () {
@@ -235,20 +254,38 @@
                         text: message,
                         hideAfter: false,
                         bgColor: '#337ef7',
-                        position: 'top-right' 
+                        position: 'top-right'
                     });
-                 
+
                 },
                 error: function (request, status, error) {
                     $.toast({
                         text: "Houston we have a problem",
                         hideAfter: false,
                         bgColor: '#337ef7',
-                        position: 'top-right' 
+                        position: 'top-right'
                     });
                 }
             });
         });
+
+       
+
+        $('#showGraph').click(function () {
+            if (showGraph) {
+                $('#leftHalf').css('background-image', 'url()');
+                showGraph = false;
+                $('#myChart').show();
+                $('#showGraph').val("Hide graph");
+            }
+            else {
+                $('#leftHalf').css('background-image', 'url(' + '/DistributedPizza.Web/Content/Images/Pizza.jpg' + ')');
+                showGraph = true;
+                $('#myChart').hide();
+                $('#showGraph').val("Show graph");
+            }
+        });
+
 
         $('#cleanUpDatabase').click(function () {
 
@@ -265,6 +302,67 @@
                 }
             });
         });
+
+        setInterval(function () {
+            if (showGraph)
+                return;
+            $.ajax({
+                url: "home/getorderdata",
+                type: "POST",
+                cache: false,
+                async: true,
+                success: function (data) {
+                    var dataarray = new Array();
+                    dataarray.push(data.OrderStarted);
+                    dataarray.push(data.OrderReadyForDelivery);
+                    dataarray.push(data.OrderDelivered);
+                    var ctx = document.getElementById("myChart");
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ["Orders started", "RFD", "Delivered"],
+                            datasets: [{
+                                label: '# Order Statuses',
+                                data: dataarray,
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)'
+                        
+                                ],
+                                borderColor: [
+                                    'rgba(255,99,132,1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)'
+                       
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero:true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                   
+
+                },
+                error: function (request, status, error) {
+                    $.toast({
+                        text: "Houston we have a problem",
+                        hideAfter: false,
+                        bgColor: '#337ef7',
+                        position: 'top-right'
+                    });
+                }
+            });
+
+        }, 10000);
 
     });
 </script>
